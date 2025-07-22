@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Bíblia Digital (HTML/JS)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter para todo o corpo */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para pre-wrap para manter a formatação do texto da IA */
+        .whitespace-pre-wrap {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl transform transition-all duration-300 hover:scale-[1.01]">
+        <h1 class="text-4xl font-extrabold text-center text-gray-800 mb-8 tracking-tight">
+            Minha Bíblia Digital
+        </h1>
+
+        <!-- Seção de Autenticação -->
+        <div id="auth-section" class="mb-8 text-center">
+            <p id="auth-status" class="text-gray-700 text-lg mb-4">Por favor, faça login para usar a aplicação.</p>
+            <button
+                id="google-signin-button"
+                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-200"
+            >
+                Entrar com Google
+            </button>
+            <button
+                id="signout-button"
+                class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-all duration-200 ml-4"
+                style="display: none;"
+            >
+                Sair
+            </button>
+        </div>
+
+        <!-- Conteúdo da Aplicação (Visível apenas após o login) -->
+        <div id="app-content" style="display: none;">
+            <!-- Seleção de Versão da Bíblia -->
+            <div class="mb-4">
+                <label for="version-select" class="block text-gray-700 text-lg font-semibold mb-2">
+                    Selecione a Versão:
+                </label>
+                <select
+                    id="version-select"
+                    class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-800 bg-gray-50"
+                >
+                    <option value="">-- Selecione uma Versão --</option>
+                </select>
+            </div>
+
+            <!-- Seleção de Livro -->
+            <div class="mb-4" id="book-section" style="display: none;">
+                <label for="book-select" class="block text-gray-700 text-lg font-semibold mb-2">
+                    Selecione o Livro:
+                </label>
+                <select
+                    id="book-select"
+                    class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-800 bg-gray-50"
+                >
+                    <option value="">-- Selecione um Livro --</option>
+                </select>
+            </div>
+
+            <!-- Seleção de Capítulo -->
+            <div class="mb-4" id="chapter-section" style="display: none;">
+                <label for="chapter-select" class="block text-gray-700 text-lg font-semibold mb-2">
+                    Selecione o Capítulo:
+                </label>
+                <select
+                    id="chapter-select"
+                    class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-800 bg-gray-50"
+                >
+                    <option value="">-- Selecione um Capítulo --</option>
+                </select>
+            </div>
+
+            <!-- Tipo de Leitura -->
+            <div class="mb-6" id="reading-type-section" style="display: none;">
+                <label class="block text-gray-700 text-lg font-semibold mb-2">
+                    Tipo de Leitura:
+                </label>
+                <div class="flex flex-wrap gap-4">
+                    <label class="inline-flex items-center">
+                        <input
+                            type="radio"
+                            class="form-radio h-5 w-5 text-blue-600"
+                            name="readingType"
+                            value="single"
+                            checked
+                        />
+                        <span class="ml-2 text-gray-700">Versículo Único</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input
+                            type="radio"
+                            class="form-radio h-5 w-5 text-blue-600"
+                            name="readingType"
+                            value="range"
+                        />
+                        <span class="ml-2 text-gray-700">Intervalo de Versículos</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input
+                            type="radio"
+                            class="form-radio h-5 w-5 text-blue-600"
+                            name="readingType"
+                            value="chapter"
+                        />
+                        <span class="ml-2 text-gray-700">Capítulo Inteiro</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Seleção de Versículo Único -->
+            <div class="mb-6" id="single-verse-section" style="display: none;">
+                <label for="verse-select" class="block text-gray-700 text-lg font-semibold mb-2">
+                    Selecione o Versículo:
+                </label>
+                <select
+                    id="verse-select"
+                    class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-800 bg-gray-50"
+                >
+                    <option value="">-- Selecione um Versículo --</option>
+                </select>
+            </div>
+
+            <!-- Seleção de Intervalo de Versículos -->
+            <div class="mb-6 flex gap-4" id="range-verse-section" style="display: none;">
+                <div class="flex-1">
+                    <label for="start-verse-select" class="block text-gray-700 text-lg font-semibold mb-2">
+                        Versículo Inicial:
+                    </label>
+                    <select
+                        id="start-verse-select"
+                        class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-800 bg-gray-50"
+                    >
+                        <option value="">-- Início --</option>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label for="end-verse-select" class="block text-gray-700 text-lg font-semibold mb-2">
+                        Versículo Final:
+                    </label>
+                    <select
+                        id="end-verse-select"
+                        class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-800 bg-gray-50"
+                    >
+                        <option value="">-- Fim --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Botão para Buscar Conteúdo -->
+            <button
+                id="fetch-button"
+                class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+            >
+                Buscar Conteúdo (IA Real)
+            </button>
+
+            <!-- Exibição de Erros -->
+            <div id="error-message" class="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center font-medium" style="display: none;">
+            </div>
+
+            <!-- Exibição do Conteúdo -->
+            <div id="verse-display" class="mt-8 p-6 bg-blue-50 rounded-xl shadow-inner border border-blue-200" style="display: none;">
+                <h2 id="verse-title" class="text-2xl font-bold text-blue-800 mb-4"></h2>
+                <p id="verse-text" class="text-gray-900 text-lg leading-relaxed whitespace-pre-wrap"></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Importações do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Não necessário para esta funcionalidade, mas bom para referência
+
+        // Dados simulados de livros, capítulos e versões para demonstração.
+        const mockBookStructure = [
+            { id: 'genesis', name: 'Gênesis', chapters: 50 },
+            { id: 'exodus', name: 'Êxodo', chapters: 40 },
+            { id: 'leviticus', name: 'Levítico', chapters: 27 },
+            { id: 'john', name: 'João', chapters: 21 },
+            { id: 'romans', name: 'Romanos', chapters: 16 },
+        ];
+
+        const mockBibleVersions = [
+            { id: 'acf', name: 'Almeida Corrigida Fiel (ACF)' },
+            { id: 'nvi', name: 'Nova Versão Internacional (NVI)' },
+            { id: 'kjv', name: 'King James Version (KJV)' },
+            { id: 'ara', name: 'Almeida Revista e Atualizada (ARA)' },
+            { id: 'tb', name: 'Tradução Brasileira (TB)' },
+            { id: 'naa', name: 'Nova Almeida Atualizada (NAA)' },
+            { id: 'ntlh', name: 'Nova Tradução na Linguagem de Hoje (NTLH)' },
+            { id: 'asv', name: 'American Standard Version (ASV)' },
+            { id: 'rsv', name: 'Revised Standard Version (RSV)' },
+        ];
+
+        // Referências aos elementos do DOM
+        const versionSelect = document.getElementById('version-select');
+        const bookSelect = document.getElementById('book-select');
+        const chapterSelect = document.getElementById('chapter-select');
+        const readingTypeRadios = document.querySelectorAll('input[name="readingType"]');
+        const singleVerseSection = document.getElementById('single-verse-section');
+        const rangeVerseSection = document.getElementById('range-verse-section');
+        const verseSelect = document.getElementById('verse-select');
+        const startVerseSelect = document.getElementById('start-verse-select');
+        const endVerseSelect = document.getElementById('end-verse-select');
+        const fetchButton = document.getElementById('fetch-button');
+        const errorMessageDiv = document.getElementById('error-message');
+        const verseDisplayDiv = document.getElementById('verse-display');
+        const verseTitleH2 = document.getElementById('verse-title');
+        const verseTextP = document.getElementById('verse-text');
+
+        // Seções que serão exibidas/ocultadas
+        const bookSection = document.getElementById('book-section');
+        const chapterSection = document.getElementById('chapter-section');
+        const readingTypeSection = document.getElementById('reading-type-section');
+        const authStatusP = document.getElementById('auth-status');
+        const googleSignInButton = document.getElementById('google-signin-button');
+        const signOutButton = document.getElementById('signout-button');
+        const appContentDiv = document.getElementById('app-content');
+
+        // Variáveis de estado
+        let selectedVersionId = 'acf'; // Padrão para ACF
+        let selectedBookId = '';
+        let selectedChapter = '';
+        let selectedVerseNum = '';
+        let startVerse = '';
+        let endVerse = '';
+        let readingType = 'single'; // Padrão para versículo único
+        let loading = false;
+        let currentUser = null; // Para armazenar o usuário autenticado
+
+        // --- Configuração e Inicialização do Firebase ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Listener de estado de autenticação
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            updateUIForAuth();
+            if (user) {
+                // Se o usuário está logado, carregue os dados iniciais da UI da aplicação
+                loadInitialData();
+            } else {
+                // Se o usuário não está logado, limpe a UI da aplicação
+                clearApplicationUI();
+            }
+        });
+
+        // Tenta fazer login com token personalizado se disponível (ambiente Canvas)
+        async function signInWithCanvasToken() {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } catch (error) {
+                    console.error("Erro ao fazer login com token personalizado:", error);
+                    // Fallback para login anônimo se o token falhar
+                    await signInAnonymously(auth);
+                }
+            } else {
+                // Se não houver token personalizado, faça login anonimamente
+                await signInAnonymously(auth);
+            }
+        }
+
+        // --- Funções de Autenticação ---
+        googleSignInButton.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Erro ao fazer login com Google:", error);
+                displayError("Erro ao fazer login com Google. Tente novamente.");
+            }
+        });
+
+        signOutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+            } catch (error) {
+                console.error("Erro ao sair:", error);
+                displayError("Erro ao sair. Tente novamente.");
+            }
+        });
+
+        // --- Funções Auxiliares para a UI ---
+        function setLoadingState(isLoading) {
+            loading = isLoading;
+            fetchButton.disabled = isLoading || !currentUser; // Desabilita se não estiver logado
+            fetchButton.textContent = isLoading ? 'Consultando IA...' : 'Buscar Conteúdo (IA Real)';
+
+            // Desabilitar/habilitar selects enquanto carrega ou se não estiver logado
+            const disableAll = isLoading || !currentUser;
+            versionSelect.disabled = disableAll;
+            bookSelect.disabled = disableAll || !selectedVersionId;
+            chapterSelect.disabled = disableAll || !selectedBookId;
+            readingTypeRadios.forEach(radio => {
+                const isDisabled = disableAll || !selectedChapter;
+                radio.disabled = isDisabled;
+            });
+            verseSelect.disabled = disableAll || !selectedChapter;
+            startVerseSelect.disabled = disableAll || !selectedChapter;
+            endVerseSelect.disabled = disableAll || !selectedChapter;
+        }
+
+        function displayError(message) {
+            errorMessageDiv.textContent = message;
+            errorMessageDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessageDiv.style.display = 'none';
+        }
+
+        function clearVerseDisplay() {
+            verseDisplayDiv.style.display = 'none';
+            verseTitleH2.textContent = '';
+            verseTextP.textContent = '';
+        }
+
+        function populateSelect(selectElement, options, selectedValue = '') {
+            selectElement.innerHTML = '<option value="">-- Selecione --</option>';
+            options.forEach(option => {
+                const opt = document.createElement('option');
+                opt.value = option.id || option;
+                opt.textContent = option.name || option;
+                if (opt.value === selectedValue) {
+                    opt.selected = true;
+                }
+                selectElement.appendChild(opt);
+            });
+            selectElement.disabled = options.length === 0 || !currentUser; // Desabilita se não houver opções ou não estiver logado
+        }
+
+        // Atualiza a UI com base no estado de autenticação
+        function updateUIForAuth() {
+            if (currentUser) {
+                authStatusP.textContent = `Logado como: ${currentUser.displayName || currentUser.email || 'Usuário Anônimo'}`;
+                googleSignInButton.style.display = 'none';
+                signOutButton.style.display = 'inline-block';
+                appContentDiv.style.display = 'block'; // Mostra o conteúdo da aplicação
+                setLoadingState(loading); // Re-avaliar o estado de disabled dos controles
+            } else {
+                authStatusP.textContent = 'Por favor, faça login para usar a aplicação.';
+                googleSignInButton.style.display = 'inline-block';
+                signOutButton.style.display = 'none';
+                appContentDiv.style.display = 'none'; // Oculta o conteúdo da aplicação
+                setLoadingState(loading); // Re-avaliar o estado de disabled dos controles
+            }
+        }
+
+        // Limpa todos os selects e exibições da aplicação
+        function clearApplicationUI() {
+            selectedBookId = '';
+            selectedChapter = '';
+            selectedVerseNum = '';
+            startVerse = '';
+            endVerse = '';
+            readingType = 'single';
+            document.querySelector('input[name="readingType"][value="single"]').checked = true;
+
+            populateSelect(versionSelect, mockBibleVersions, 'acf'); // Reseta para ACF
+            populateSelect(bookSelect, []);
+            populateSelect(chapterSelect, []);
+            populateSelect(verseSelect, []);
+            populateSelect(startVerseSelect, []);
+            populateSelect(endVerseSelect, []);
+
+            bookSection.style.display = 'none';
+            chapterSection.style.display = 'none';
+            readingTypeSection.style.display = 'none';
+            singleVerseSection.style.display = 'none';
+            rangeVerseSection.style.display = 'none';
+
+            clearVerseDisplay();
+            hideError();
+            setLoadingState(false);
+        }
+
+        // Carrega os dados iniciais (versões e livros)
+        function loadInitialData() {
+            setLoadingState(true);
+            hideError();
+            clearVerseDisplay();
+
+            setTimeout(() => {
+                populateSelect(versionSelect, mockBibleVersions, selectedVersionId);
+                if (selectedVersionId) {
+                    bookSection.style.display = 'block';
+                    populateSelect(bookSelect, mockBookStructure, selectedBookId);
+                }
+                setLoadingState(false);
+            }, 300);
+        }
+
+        // Função para buscar e exibir o texto usando a API do Gemini
+        async function fetchContentFromAI() { // Função movida para antes do addEventListener
+            if (!selectedVersionId || !selectedBookId || !selectedChapter) {
+                displayError('Por favor, selecione uma versão da Bíblia, um livro e um capítulo.');
+                return;
+            }
+
+            if (readingType === 'single' && !selectedVerseNum) {
+                displayError('Por favor, selecione um versículo.');
+                return;
+            }
+
+            if (readingType === 'range' && (!startVerse || !endVerse)) {
+                displayError('Por favor, selecione o versículo inicial e final.');
+                return;
+            }
+
+            if (readingType === 'range' && (parseInt(startVerse) >= parseInt(endVerse))) {
+                displayError('O versículo inicial deve ser menor que o versículo final.');
+                return;
+            }
+
+            setLoadingState(true);
+            hideError();
+            clearVerseDisplay();
+
+            try {
+                const bookName = mockBookStructure.find(b => b.id === selectedBookId)?.name;
+                const versionName = mockBibleVersions.find(v => v.id === selectedVersionId)?.name;
+                let prompt = '';
+                let title = '';
+
+                if (readingType === 'single') {
+                    prompt = `Forneça o texto do versículo ${bookName} capítulo ${selectedChapter}, versículo ${selectedVerseNum} na versão ${versionName}. Responda apenas com o texto do versículo, sem introduções ou informações adicionais.`;
+                    title = `${bookName} ${selectedChapter}:${selectedVerseNum} (${versionName})`;
+                } else if (readingType === 'range') {
+                    prompt = `Forneça o texto dos versículos de ${bookName} capítulo ${selectedChapter}, do versículo ${startVerse} ao versículo ${endVerse}, na versão ${versionName}. Responda apenas com o texto dos versículos, sem introduções ou informações adicionais, formatando-os claramente com o número do versículo.`;
+                    title = `${bookName} ${selectedChapter}:${startVerse}-${endVerse} (${versionName})`;
+                } else if (readingType === 'chapter') {
+                    prompt = `Forneça o texto completo do capítulo ${selectedChapter} do livro de ${bookName}, na versão ${versionName}. Responda apenas com o texto do capítulo, sem introduções ou informações adicionais, formatando-o claramente com os números dos versículos.`;
+                    title = `${bookName} Capítulo ${selectedChapter} (${versionName})`;
+                }
+
+                let chatHistory = [];
+                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                const payload = { contents: chatHistory };
+                const apiKey = ""; // A chave da API será fornecida pelo ambiente Canvas
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    const text = result.candidates[0].content.parts[0].text;
+                    verseTitleH2.textContent = title;
+                    verseTextP.textContent = text;
+                    verseDisplayDiv.style.display = 'block';
+                } else {
+                    displayError('Não foi possível obter o conteúdo da IA. Tente novamente.');
+                }
+            } catch (err) {
+                displayError('Erro ao comunicar com a IA. Verifique sua conexão.');
+                console.error("Erro na chamada da API Gemini:", err);
+            } finally {
+                setLoadingState(false);
+            }
+        }
+
+        // --- Lógica de Manipulação de Eventos ---
+        versionSelect.addEventListener('change', (event) => {
+            selectedVersionId = event.target.value;
+            selectedBookId = '';
+            selectedChapter = '';
+            selectedVerseNum = '';
+            startVerse = '';
+            endVerse = '';
+            clearVerseDisplay();
+            hideError();
+
+            if (selectedVersionId) {
+                bookSection.style.display = 'block';
+                populateSelect(bookSelect, mockBookStructure, selectedBookId);
+                chapterSection.style.display = 'none';
+                readingTypeSection.style.display = 'none';
+                singleVerseSection.style.display = 'none';
+                rangeVerseSection.style.display = 'none';
+            } else {
+                bookSection.style.display = 'none';
+                chapterSection.style.display = 'none';
+                readingTypeSection.style.display = 'none';
+                singleVerseSection.style.display = 'none';
+                rangeVerseSection.style.display = 'none';
+                populateSelect(bookSelect, []); // Limpa o select de livros
+                populateSelect(chapterSelect, []); // Limpa o select de capítulos
+                populateSelect(verseSelect, []); // Limpa o select de versículos
+                populateSelect(startVerseSelect, []); // Limpa o select de versículos iniciais
+                populateSelect(endVerseSelect, []); // Limpa o select de versículos finais
+            }
+            setLoadingState(loading);
+        });
+
+        bookSelect.addEventListener('change', (event) => {
+            selectedBookId = event.target.value;
+            selectedChapter = '';
+            selectedVerseNum = '';
+            startVerse = '';
+            endVerse = '';
+            clearVerseDisplay();
+            hideError();
+
+            if (selectedBookId) {
+                chapterSection.style.display = 'block';
+                const selectedBook = mockBookStructure.find(book => book.id === selectedBookId);
+                const numberOfChapters = selectedBook ? selectedBook.chapters : 0;
+                const chapters = Array.from({ length: numberOfChapters }, (_, i) => i + 1);
+                populateSelect(chapterSelect, chapters, selectedChapter);
+                readingTypeSection.style.display = 'none';
+                singleVerseSection.style.display = 'none';
+                rangeVerseSection.style.display = 'none';
+            } else {
+                chapterSection.style.display = 'none';
+                readingTypeSection.style.display = 'none';
+                singleVerseSection.style.display = 'none';
+                rangeVerseSection.style.display = 'none';
+                populateSelect(chapterSelect, []);
+                populateSelect(verseSelect, []);
+                populateSelect(startVerseSelect, []);
+                populateSelect(endVerseSelect, []);
+            }
+            setLoadingState(loading);
+        });
+
+        chapterSelect.addEventListener('change', (event) => {
+            selectedChapter = event.target.value;
+            selectedVerseNum = '';
+            startVerse = '';
+            endVerse = '';
+            clearVerseDisplay();
+            hideError();
+
+            if (selectedChapter) {
+                readingTypeSection.style.display = 'block';
+                const numberOfVerses = 30;
+                const verses = Array.from({ length: numberOfVerses }, (_, i) => i + 1);
+                populateSelect(verseSelect, verses, selectedVerseNum);
+                populateSelect(startVerseSelect, verses, startVerse);
+                populateSelect(endVerseSelect, verses, endVerse);
+
+                singleVerseSection.style.display = 'block';
+                rangeVerseSection.style.display = 'none';
+                document.querySelector('input[name="readingType"][value="single"]').checked = true;
+                readingType = 'single';
+            } else {
+                readingTypeSection.style.display = 'none';
+                singleVerseSection.style.display = 'none';
+                rangeVerseSection.style.display = 'none';
+                populateSelect(verseSelect, []);
+                populateSelect(startVerseSelect, []);
+                populateSelect(endVerseSelect, []);
+            }
+            setLoadingState(loading);
+        });
+
+        readingTypeRadios.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                readingType = event.target.value;
+                selectedVerseNum = '';
+                startVerse = '';
+                endVerse = '';
+                clearVerseDisplay();
+                hideError();
+
+                if (readingType === 'single') {
+                    singleVerseSection.style.display = 'block';
+                    rangeVerseSection.style.display = 'none';
+                } else if (readingType === 'range') {
+                    singleVerseSection.style.display = 'none';
+                    rangeVerseSection.style.display = 'flex';
+                } else if (readingType === 'chapter') {
+                    singleVerseSection.style.display = 'none';
+                    rangeVerseSection.style.display = 'none';
+                }
+            });
+        });
+
+        verseSelect.addEventListener('change', (event) => {
+            selectedVerseNum = event.target.value;
+            clearVerseDisplay();
+            hideError();
+        });
+
+        startVerseSelect.addEventListener('change', (event) => {
+            startVerse = event.target.value;
+            clearVerseDisplay();
+            hideError();
+        });
+
+        endVerseSelect.addEventListener('change', (event) => {
+            endVerse = event.target.value;
+            clearVerseDisplay();
+            hideError();
+        });
+
+        fetchButton.addEventListener('click', fetchContentFromAI);
+
+        // Inicializa a autenticação do Firebase quando a página carrega
+        window.onload = signInWithCanvasToken;
+    </script>
+</body>
+</html>
