@@ -203,6 +203,8 @@
         const bookSection = document.getElementById('book-section');
         const chapterSection = document.getElementById('chapter-section');
         const readingTypeSection = document.getElementById('reading-type-section');
+        // Removidas referências a elementos de autenticação: authStatusP, googleSignInButton, signOutButton
+        const appContentDiv = document.getElementById('app-content'); // Mantido para referência, mas agora sempre visível
 
         // Variáveis de estado
         let selectedVersionId = 'acf'; // Padrão para ACF
@@ -213,6 +215,7 @@
         let endVerse = '';
         let readingType = 'single'; // Padrão para versículo único
         let loading = false;
+        // Removida variável currentUser
 
         // --- Funções Auxiliares para a UI ---
         function setLoadingState(isLoading) {
@@ -261,8 +264,26 @@
             selectElement.disabled = options.length === 0;
         }
 
+        // Carrega os dados iniciais (versões e livros)
+        function loadInitialData() {
+            setLoadingState(true);
+            hideError();
+            clearVerseDisplay();
+
+            setTimeout(() => {
+                populateSelect(versionSelect, mockBibleVersions, selectedVersionId);
+                if (selectedVersionId) {
+                    bookSection.style.display = 'block';
+                    populateSelect(bookSelect, mockBookStructure, selectedBookId);
+                }
+                setLoadingState(false);
+            }, 300);
+        }
+
         // Função para buscar e exibir o texto usando a API do Gemini
         async function fetchContentFromAI() {
+            // Removida a verificação de login, pois a autenticação foi removida.
+
             if (!selectedVersionId || !selectedBookId || !selectedChapter) {
                 displayError('Por favor, selecione uma versão da Bíblia, um livro e um capítulo.');
                 return;
@@ -308,10 +329,9 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                // ATENÇÃO: Ao hospedar este código, você precisará substituir
-                // 'SUA_CHAVE_DE_API_DO_GEMINI_AQUI' pela sua chave de API real do Gemini.
+                // A chave da API foi substituída pela que você forneceu.
                 // Lembre-se dos riscos de segurança ao expor sua chave diretamente no front-end.
-                const apiKey = "AIzaSyDoWo5P6cSDqJeAiq6O69j0Jonn5b4ul3E"; // Coloque sua chave de API aqui
+                const apiKey = "AIzaSyDoWo5P6cSDqJeAiq6O69j0Jonn5b4ul3E";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
@@ -338,22 +358,6 @@
             } finally {
                 setLoadingState(false);
             }
-        }
-
-        // Carrega os dados iniciais (versões e livros)
-        function loadInitialData() {
-            setLoadingState(true);
-            hideError();
-            clearVerseDisplay();
-
-            setTimeout(() => {
-                populateSelect(versionSelect, mockBibleVersions, selectedVersionId);
-                if (selectedVersionId) {
-                    bookSection.style.display = 'block';
-                    populateSelect(bookSelect, mockBookStructure, selectedBookId);
-                }
-                setLoadingState(false);
-            }, 300);
         }
 
         // --- Lógica de Manipulação de Eventos ---
