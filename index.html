@@ -162,7 +162,15 @@
     </div>
 
     <script type="module">
-        // Dados simulados de versões (mantidos, pois a API de livros não fornece versões)
+        // Dados simulados de livros, capítulos e versões para demonstração.
+        const mockBookStructure = [
+            { id: 'genesis', name: 'Gênesis', chapters: 50 },
+            { id: 'exodus', name: 'Êxodo', chapters: 40 },
+            { id: 'leviticus', name: 'Levítico', chapters: 27 },
+            { id: 'john', name: 'João', chapters: 21 },
+            { id: 'romans', name: 'Romanos', chapters: 16 },
+        ];
+
         const mockBibleVersions = [
             { id: 'acf', name: 'Almeida Corrigida Fiel (ACF)' },
             { id: 'nvi', name: 'Nova Versão Internacional (NVI)' },
@@ -205,7 +213,6 @@
         let endVerse = '';
         let readingType = 'single'; // Padrão para versículo único
         let loading = false;
-        let allBooks = []; // Para armazenar os livros carregados da API
 
         // --- Funções Auxiliares para a UI ---
         function setLoadingState(isLoading) {
@@ -244,8 +251,7 @@
             selectElement.innerHTML = '<option value="">-- Selecione --</option>';
             options.forEach(option => {
                 const opt = document.createElement('option');
-                // A API abibliadigital.com.br usa 'abbrev.pt' como ID e 'name' como nome
-                opt.value = option.id || (option.abbrev ? option.abbrev.pt : option);
+                opt.value = option.id || option;
                 opt.textContent = option.name || option;
                 if (opt.value === selectedValue) {
                     opt.selected = true;
@@ -282,10 +288,8 @@
             clearVerseDisplay();
 
             try {
-                // Obter o nome completo do livro e da versão para o prompt da IA
-                const bookName = allBooks.find(b => b.abbrev.pt === selectedBookId)?.name;
+                const bookName = mockBookStructure.find(b => b.id === selectedBookId)?.name;
                 const versionName = mockBibleVersions.find(v => v.id === selectedVersionId)?.name;
-
                 let prompt = '';
                 let title = '';
 
@@ -304,7 +308,10 @@
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
 
                 const payload = { contents: chatHistory };
-                const apiKey = ""; // A chave da API será fornecida pelo ambiente Canvas
+                // ATENÇÃO: Ao hospedar este código, você precisará substituir
+                // 'SUA_CHAVE_DE_API_DO_GEMINI_AQUI' pela sua chave de API real do Gemini.
+                // Lembre-se dos riscos de segurança ao expor sua chave diretamente no front-end.
+                const apiKey = "AIzaSyDoWo5P6cSDqJeAiq6O69j0Jonn5b4ul3E"; // Coloque sua chave de API aqui
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
                 const response = await fetch(apiUrl, {
@@ -326,43 +333,27 @@
                     displayError('Não foi possível obter o conteúdo da IA. Tente novamente.');
                 }
             } catch (err) {
-                displayError('Erro ao comunicar com a IA. Verifique sua conexão.');
+                displayError('Erro ao comunicar com a IA. Verifique sua conexão. Se estiver hospedando em outro lugar, certifique-se de que sua chave de API está correta e que não há problemas de CORS.');
                 console.error("Erro na chamada da API Gemini:", err);
             } finally {
                 setLoadingState(false);
             }
         }
 
-        // Carrega os dados iniciais (versões e livros da API)
-        async function loadInitialData() {
+        // Carrega os dados iniciais (versões e livros)
+        function loadInitialData() {
             setLoadingState(true);
             hideError();
             clearVerseDisplay();
 
-            try {
-                // Carrega as versões (simuladas)
+            setTimeout(() => {
                 populateSelect(versionSelect, mockBibleVersions, selectedVersionId);
-
-                // Carrega os livros da API abibliadigital.com.br
-                const response = await fetch('https://www.abibliadigital.com.br/api/books');
-                if (!response.ok) {
-                    // Se a resposta não for OK, lança um erro com a mensagem de status
-                    throw new Error(`Erro ao carregar livros: ${response.status} ${response.statusText}. Isso pode ser devido a políticas de CORS. Considere usar um servidor proxy.`);
-                }
-                allBooks = await response.json(); // Armazena todos os livros
-
-                // Habilita a seção do livro se uma versão já estiver selecionada
                 if (selectedVersionId) {
                     bookSection.style.display = 'block';
-                    // Popula o select de livros usando os dados da API
-                    populateSelect(bookSelect, allBooks, selectedBookId);
+                    populateSelect(bookSelect, mockBookStructure, selectedBookId);
                 }
-            } catch (err) {
-                displayError(`Erro ao carregar dados iniciais: ${err.message}`);
-                console.error("Erro ao carregar dados iniciais:", err);
-            } finally {
                 setLoadingState(false);
-            }
+            }, 300);
         }
 
         // --- Lógica de Manipulação de Eventos ---
@@ -378,7 +369,7 @@
 
             if (selectedVersionId) {
                 bookSection.style.display = 'block';
-                populateSelect(bookSelect, allBooks, selectedBookId); // Usa allBooks
+                populateSelect(bookSelect, mockBookStructure, selectedBookId);
                 chapterSection.style.display = 'none';
                 readingTypeSection.style.display = 'none';
                 singleVerseSection.style.display = 'none';
@@ -409,8 +400,7 @@
 
             if (selectedBookId) {
                 chapterSection.style.display = 'block';
-                // Encontra o livro selecionado para obter o número de capítulos
-                const selectedBook = allBooks.find(book => book.abbrev.pt === selectedBookId);
+                const selectedBook = mockBookStructure.find(book => book.id === selectedBookId);
                 const numberOfChapters = selectedBook ? selectedBook.chapters : 0;
                 const chapters = Array.from({ length: numberOfChapters }, (_, i) => i + 1);
                 populateSelect(chapterSelect, chapters, selectedChapter);
@@ -440,7 +430,7 @@
 
             if (selectedChapter) {
                 readingTypeSection.style.display = 'block';
-                const numberOfVerses = 30; // Ainda simulando 30 versículos por capítulo
+                const numberOfVerses = 30;
                 const verses = Array.from({ length: numberOfVerses }, (_, i) => i + 1);
                 populateSelect(verseSelect, verses, selectedVerseNum);
                 populateSelect(startVerseSelect, verses, startVerse);
