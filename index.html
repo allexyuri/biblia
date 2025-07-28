@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minha Bíblia Digital</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Define a fonte Inter para todo o corpo */
@@ -15,7 +14,21 @@
         .whitespace-pre-wrap {
             white-space: pre-wrap;
         }
+        /* Style for clickable verse (optional, for visual feedback) */
+        .verse-clickable {
+            cursor: pointer;
+            text-decoration: underline;
+            color: #2563EB; /* blue-600 */
+        }
     </style>
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Minha Bíblia">
+    <meta name="theme-color" content="#2563EB"/>
+
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200 flex items-center justify-center p-4">
 
@@ -24,9 +37,7 @@
             Minha Bíblia Digital
         </h1>
 
-        <!-- Conteúdo da Aplicação (Sempre visível) -->
         <div id="app-content">
-            <!-- Seleção de Versão da Bíblia -->
             <div class="mb-4">
                 <label for="version-select" class="block text-gray-700 text-lg font-semibold mb-2">
                     Selecione a Versão:
@@ -39,7 +50,6 @@
                 </select>
             </div>
 
-            <!-- Seleção de Livro -->
             <div class="mb-4" id="book-section" style="display: none;">
                 <label for="book-select" class="block text-gray-700 text-lg font-semibold mb-2">
                     Selecione o Livro:
@@ -52,7 +62,6 @@
                 </select>
             </div>
 
-            <!-- Seleção de Capítulo -->
             <div class="mb-4" id="chapter-section" style="display: none;">
                 <label for="chapter-select" class="block text-gray-700 text-lg font-semibold mb-2">
                     Selecione o Capítulo:
@@ -65,7 +74,6 @@
                 </select>
             </div>
 
-            <!-- Tipo de Leitura -->
             <div class="mb-6" id="reading-type-section" style="display: none;">
                 <label class="block text-gray-700 text-lg font-semibold mb-2">
                     Tipo de Leitura:
@@ -102,7 +110,6 @@
                 </div>
             </div>
 
-            <!-- Seleção de Versículo Único -->
             <div class="mb-6" id="single-verse-section" style="display: none;">
                 <label for="verse-select" class="block text-gray-700 text-lg font-semibold mb-2">
                     Selecione o Versículo:
@@ -115,7 +122,6 @@
                 </select>
             </div>
 
-            <!-- Seleção de Intervalo de Versículos -->
             <div class="mb-6 flex gap-4" id="range-verse-section" style="display: none;">
                 <div class="flex-1">
                     <label for="start-verse-select" class="block text-gray-700 text-lg font-semibold mb-2">
@@ -141,19 +147,13 @@
                 </div>
             </div>
 
-            <!-- Botão para Buscar Conteúdo -->
-            <button
-                id="fetch-button"
-                class="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition-all duration-300 transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-            >
-                Buscar Conteúdo (IA Real)
-            </button>
+            <p id="loading-message" class="mt-6 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-center font-medium" style="display: none;">
+                Carregando...
+            </p>
 
-            <!-- Exibição de Erros -->
             <div id="error-message" class="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center font-medium" style="display: none;">
             </div>
 
-            <!-- Exibição do Conteúdo -->
             <div id="verse-display" class="mt-8 p-6 bg-blue-50 rounded-xl shadow-inner border border-blue-200" style="display: none;">
                 <h2 id="verse-title" class="text-2xl font-bold text-blue-800 mb-4"></h2>
                 <p id="verse-text" class="text-gray-900 text-lg leading-relaxed whitespace-pre-wrap"></p>
@@ -167,8 +167,69 @@
             { id: 'genesis', name: 'Gênesis', chapters: 50 },
             { id: 'exodus', name: 'Êxodo', chapters: 40 },
             { id: 'leviticus', name: 'Levítico', chapters: 27 },
+            { id: 'numbers', name: 'Números', chapters: 36 },
+            { id: 'deuteronomy', name: 'Deuteronômio', chapters: 34 },
+            { id: 'joshua', name: 'Josué', chapters: 24 },
+            { id: 'judges', name: 'Juízes', chapters: 21 },
+            { id: 'ruth', name: 'Rute', chapters: 4 },
+            { id: '1-samuel', name: '1 Samuel', chapters: 31 },
+            { id: '2-samuel', name: '2 Samuel', chapters: 24 },
+            { id: '1-kings', name: '1 Reis', chapters: 22 },
+            { id: '2-kings', name: '2 Reis', chapters: 25 },
+            { id: '1-chronicles', name: '1 Crônicas', chapters: 29 },
+            { id: '2-chronicles', name: '2 Crônicas', chapters: 36 },
+            { id: 'ezra', name: 'Esdras', chapters: 10 },
+            { id: 'nehemiah', name: 'Neemias', chapters: 13 },
+            { id: 'esther', name: 'Ester', chapters: 10 },
+            { id: 'job', name: 'Jó', chapters: 42 },
+            { id: 'psalms', name: 'Salmos', chapters: 150 },
+            { id: 'proverbs', name: 'Provérbios', chapters: 31 },
+            { id: 'ecclesiastes', name: 'Eclesiastes', chapters: 12 },
+            { id: 'song-of-solomon', name: 'Cântico dos Cânticos', chapters: 8 },
+            { id: 'isaiah', name: 'Isaías', chapters: 66 },
+            { id: 'jeremiah', name: 'Jeremias', chapters: 52 },
+            { id: 'lamentations', name: 'Lamentações', chapters: 5 },
+            { id: 'ezekiel', name: 'Ezequiel', chapters: 48 },
+            { id: 'daniel', name: 'Daniel', chapters: 12 },
+            { id: 'hosea', name: 'Oséias', chapters: 14 },
+            { id: 'joel', name: 'Joel', chapters: 3 },
+            { id: 'amos', name: 'Amós', chapters: 9 },
+            { id: 'obadiah', name: 'Obadias', chapters: 1 },
+            { id: 'jonah', name: 'Jonas', chapters: 4 },
+            { id: 'micah', name: 'Miqueias', chapters: 7 },
+            { id: 'nahum', name: 'Naum', chapters: 3 },
+            { id: 'habakkuk', name: 'Habacuque', chapters: 3 },
+            { id: 'zephaniah', name: 'Sofonias', chapters: 3 },
+            { id: 'haggai', name: 'Ageu', chapters: 2 },
+            { id: 'zechariah', name: 'Zacarias', chapters: 14 },
+            { id: 'malachi', name: 'Malaquias', chapters: 4 },
+            { id: 'matthew', name: 'Mateus', chapters: 28 },
+            { id: 'mark', name: 'Marcos', chapters: 16 },
+            { id: 'luke', name: 'Lucas', chapters: 24 },
             { id: 'john', name: 'João', chapters: 21 },
+            { id: 'acts', name: 'Atos', chapters: 28 },
             { id: 'romans', name: 'Romanos', chapters: 16 },
+            { id: '1-corinthians', name: '1 Coríntios', chapters: 16 },
+            { id: '2-corinthians', name: '2 Coríntios', chapters: 13 },
+            { id: 'galatians', name: 'Gálatas', chapters: 6 },
+            { id: 'ephesians', name: 'Efésios', chapters: 6 },
+            { id: 'philippians', name: 'Filipenses', chapters: 4 },
+            { id: 'colossians', name: 'Colossenses', chapters: 4 },
+            { id: '1-thessalonians', name: '1 Tessalonicenses', chapters: 5 },
+            { id: '2-thessalonians', name: '2 Tessalonicenses', chapters: 3 },
+            { id: '1-timothy', name: '1 Timóteo', chapters: 6 },
+            { id: '2-timothy', name: '2 Timóteo', chapters: 4 },
+            { id: 'titus', name: 'Tito', chapters: 3 },
+            { id: 'philemon', name: 'Filemom', chapters: 1 },
+            { id: 'hebrews', name: 'Hebreus', chapters: 13 },
+            { id: 'james', name: 'Tiago', chapters: 5 },
+            { id: '1-peter', name: '1 Pedro', chapters: 5 },
+            { id: '2-peter', name: '2 Pedro', chapters: 3 },
+            { id: '1-john', name: '1 João', chapters: 5 },
+            { id: '2-john', name: '2 João', chapters: 1 },
+            { id: '3-john', name: '3 João', chapters: 1 },
+            { id: 'jude', name: 'Judas', chapters: 1 },
+            { id: 'revelation', name: 'Apocalipse', chapters: 22 }
         ];
 
         const mockBibleVersions = [
@@ -181,6 +242,7 @@
             { id: 'ntlh', name: 'Nova Tradução na Linguagem de Hoje (NTLH)' },
             { id: 'asv', name: 'American Standard Version (ASV)' },
             { id: 'rsv', name: 'Revised Standard Version (RSV)' },
+            { id: 'heb', name: 'Hebraico (Original)' } // Added Hebrew version
         ];
 
         // Referências aos elementos do DOM
@@ -193,8 +255,8 @@
         const verseSelect = document.getElementById('verse-select');
         const startVerseSelect = document.getElementById('start-verse-select');
         const endVerseSelect = document.getElementById('end-verse-select');
-        const fetchButton = document.getElementById('fetch-button');
         const errorMessageDiv = document.getElementById('error-message');
+        const loadingMessageDiv = document.getElementById('loading-message');
         const verseDisplayDiv = document.getElementById('verse-display');
         const verseTitleH2 = document.getElementById('verse-title');
         const verseTextP = document.getElementById('verse-text');
@@ -203,8 +265,7 @@
         const bookSection = document.getElementById('book-section');
         const chapterSection = document.getElementById('chapter-section');
         const readingTypeSection = document.getElementById('reading-type-section');
-        // Removidas referências a elementos de autenticação: authStatusP, googleSignInButton, signOutButton
-        const appContentDiv = document.getElementById('app-content'); // Mantido para referência, mas agora sempre visível
+        const appContentDiv = document.getElementById('app-content');
 
         // Variáveis de estado
         let selectedVersionId = 'acf'; // Padrão para ACF
@@ -215,13 +276,16 @@
         let endVerse = '';
         let readingType = 'single'; // Padrão para versículo único
         let loading = false;
-        // Removida variável currentUser
+
+        // Variables for Hebrew translation toggle
+        let currentDisplayingHebrew = true;
+        let storedHebrewText = '';
+        let storedPortugueseText = '';
 
         // --- Funções Auxiliares para a UI ---
         function setLoadingState(isLoading) {
             loading = isLoading;
-            fetchButton.disabled = isLoading;
-            fetchButton.textContent = isLoading ? 'Consultando IA...' : 'Buscar Conteúdo (IA Real)';
+            loadingMessageDiv.style.display = isLoading ? 'block' : 'none';
 
             versionSelect.disabled = isLoading;
             bookSelect.disabled = isLoading || !selectedVersionId;
@@ -248,6 +312,12 @@
             verseDisplayDiv.style.display = 'none';
             verseTitleH2.textContent = '';
             verseTextP.textContent = '';
+            // Clear stored texts when display is cleared
+            storedHebrewText = '';
+            storedPortugueseText = '';
+            currentDisplayingHebrew = true; // Reset toggle state
+            verseTextP.removeEventListener('click', toggleHebrewTranslation); // Remove listener
+            verseTextP.classList.remove('verse-clickable'); // Remove class
         }
 
         function populateSelect(selectElement, options, selectedValue = '') {
@@ -256,12 +326,18 @@
                 const opt = document.createElement('option');
                 opt.value = option.id || option;
                 opt.textContent = option.name || option;
-                if (opt.value === selectedValue) {
+                if (opt.value == selectedValue) {
                     opt.selected = true;
                 }
                 selectElement.appendChild(opt);
             });
             selectElement.disabled = options.length === 0;
+        }
+
+        function scrollToElement(element) {
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         // Carrega os dados iniciais (versões e livros)
@@ -280,10 +356,22 @@
             }, 300);
         }
 
+        // Toggles between Hebrew and Portuguese translation
+        function toggleHebrewTranslation() {
+            if (selectedVersionId === 'heb') {
+                if (currentDisplayingHebrew) {
+                    verseTextP.textContent = storedPortugueseText;
+                    verseTitleH2.textContent = `${verseTitleH2.textContent.replace('Hebraico (Original)', 'Português (Sentido Original)')}`;
+                } else {
+                    verseTextP.textContent = storedHebrewText;
+                    verseTitleH2.textContent = `${verseTitleH2.textContent.replace('Português (Sentido Original)', 'Hebraico (Original)')}`;
+                }
+                currentDisplayingHebrew = !currentDisplayingHebrew;
+            }
+        }
+
         // Função para buscar e exibir o texto usando a API do Gemini
         async function fetchContentFromAI() {
-            // Removida a verificação de login, pois a autenticação foi removida.
-
             if (!selectedVersionId || !selectedBookId || !selectedChapter) {
                 displayError('Por favor, selecione uma versão da Bíblia, um livro e um capítulo.');
                 return;
@@ -306,51 +394,102 @@
 
             setLoadingState(true);
             hideError();
-            clearVerseDisplay();
+            clearVerseDisplay(); // Clear display and stored texts before new fetch
 
             try {
                 const bookName = mockBookStructure.find(b => b.id === selectedBookId)?.name;
                 const versionName = mockBibleVersions.find(v => v.id === selectedVersionId)?.name;
-                let prompt = '';
-                let title = '';
-
+                let reference = '';
                 if (readingType === 'single') {
-                    prompt = `Forneça o texto do versículo ${bookName} capítulo ${selectedChapter}, versículo ${selectedVerseNum} na versão ${versionName}. Responda apenas com o texto do versículo, sem introduções ou informações adicionais.`;
-                    title = `${bookName} ${selectedChapter}:${selectedVerseNum} (${versionName})`;
+                    reference = `${bookName} capítulo ${selectedChapter}, versículo ${selectedVerseNum}`;
                 } else if (readingType === 'range') {
-                    prompt = `Forneça o texto dos versículos de ${bookName} capítulo ${selectedChapter}, do versículo ${startVerse} ao versículo ${endVerse}, na versão ${versionName}. Responda apenas com o texto dos versículos, sem introduções ou informações adicionais, formatando-os claramente com o número do versículo.`;
-                    title = `${bookName} ${selectedChapter}:${startVerse}-${endVerse} (${versionName})`;
+                    reference = `${bookName} capítulo ${selectedChapter}, do versículo ${startVerse} ao versículo ${endVerse}`;
                 } else if (readingType === 'chapter') {
-                    prompt = `Forneça o texto completo do capítulo ${selectedChapter} do livro de ${bookName}, na versão ${versionName}. Responda apenas com o texto do capítulo, sem introduções ou informações adicionais, formatando-o claramente com os números dos versículos.`;
-                    title = `${bookName} Capítulo ${selectedChapter} (${versionName})`;
+                    reference = `${bookName} capítulo ${selectedChapter}`;
                 }
 
-                let chatHistory = [];
-                chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-
-                const payload = { contents: chatHistory };
-                // A chave da API foi substituída pela que você forneceu.
-                // Lembre-se dos riscos de segurança ao expor sua chave diretamente no front-end.
                 const apiKey = "AIzaSyDoWo5P6cSDqJeAiq6O69j0Jonn5b4ul3E";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                if (selectedVersionId === 'heb') {
+                    const promptHebrew = `Forneça o texto da passagem ${reference} em Hebraico (idioma original). Responda apenas com o texto bíblico em hebraico, sem introduções ou informações adicionais.`;
+                    const promptPortuguese = `Forneça uma tradução para o português brasileiro da passagem ${reference} que seja clara, gramaticalmente pura e mantenha a máxima fidelidade ao sentido original, incluindo a nuance dos verbos hebraicos. Responda apenas com o texto bíblico em português, sem introduções ou informações adicionais, formatando-o claramente com os números dos versículos.`;
 
-                const result = await response.json();
+                    const [responseHebrew, responsePortuguese] = await Promise.all([
+                        fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: promptHebrew }] }] })
+                        }),
+                        fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: promptPortuguese }] }] })
+                        })
+                    ]);
 
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    const text = result.candidates[0].content.parts[0].text;
-                    verseTitleH2.textContent = title;
-                    verseTextP.textContent = text;
-                    verseDisplayDiv.style.display = 'block';
+                    const resultHebrew = await responseHebrew.json();
+                    const resultPortuguese = await responsePortuguese.json();
+
+                    if (resultHebrew.candidates && resultHebrew.candidates.length > 0 && resultHebrew.candidates[0].content && resultHebrew.candidates[0].content.parts && resultHebrew.candidates[0].content.parts.length > 0 &&
+                        resultPortuguese.candidates && resultPortuguese.candidates.length > 0 && resultPortuguese.candidates[0].content && resultPortuguese.candidates[0].content.parts && resultPortuguese.candidates[0].content.parts.length > 0) {
+
+                        storedHebrewText = resultHebrew.candidates[0].content.parts[0].text;
+                        storedPortugueseText = resultPortuguese.candidates[0].content.parts[0].text;
+
+                        verseTitleH2.textContent = `${reference} (Hebraico (Original))`;
+                        verseTextP.textContent = storedHebrewText;
+                        verseDisplayDiv.style.display = 'block';
+                        scrollToElement(verseDisplayDiv);
+
+                        // Add click listener for toggling translation
+                        verseTextP.addEventListener('click', toggleHebrewTranslation);
+                        verseTextP.classList.add('verse-clickable'); // Add class for styling
+
+                    } else {
+                        displayError('Não foi possível obter o conteúdo em Hebraico ou a tradução em Português. Tente novamente.');
+                    }
+
                 } else {
-                    displayError('Não foi possível obter o conteúdo da IA. Tente novamente.');
+                    // Existing logic for other versions
+                    let prompt = '';
+                    let title = '';
+
+                    if (readingType === 'single') {
+                        prompt = `Forneça o texto do versículo ${reference} na versão ${versionName}. Responda apenas com o texto do versículo, sem introduções ou informações adicionais.`;
+                        title = `${reference} (${versionName})`;
+                    } else if (readingType === 'range') {
+                        prompt = `Forneça o texto dos versículos de ${reference}, na versão ${versionName}. Responda apenas com o texto dos versículos, sem introduções ou informações adicionais, formatando-os claramente com o número do versículo.`;
+                        title = `${reference} (${versionName})`;
+                    } else if (readingType === 'chapter') {
+                        prompt = `Forneça o texto completo do ${reference}, na versão ${versionName}. Responda apenas com o texto do capítulo, sem introduções ou informações adicionais, formatando-o claramente com os números dos versículos.`;
+                        title = `${reference} (${versionName})`;
+                    }
+
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                    const payload = { contents: chatHistory };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        verseTitleH2.textContent = title;
+                        verseTextP.textContent = text;
+                        verseDisplayDiv.style.display = 'block';
+                        scrollToElement(verseDisplayDiv);
+                    } else {
+                        displayError('Não foi possível obter o conteúdo da IA. Tente novamente.');
+                    }
                 }
             } catch (err) {
                 displayError('Erro ao comunicar com a IA. Verifique sua conexão. Se estiver hospedando em outro lugar, certifique-se de que sua chave de API está correta e que não há problemas de CORS.');
@@ -363,21 +502,75 @@
         // --- Lógica de Manipulação de Eventos ---
         versionSelect.addEventListener('change', (event) => {
             selectedVersionId = event.target.value;
-            selectedBookId = '';
-            selectedChapter = '';
-            selectedVerseNum = '';
-            startVerse = '';
-            endVerse = '';
             clearVerseDisplay();
             hideError();
 
             if (selectedVersionId) {
                 bookSection.style.display = 'block';
                 populateSelect(bookSelect, mockBookStructure, selectedBookId);
-                chapterSection.style.display = 'none';
-                readingTypeSection.style.display = 'none';
-                singleVerseSection.style.display = 'none';
-                rangeVerseSection.style.display = 'none';
+                scrollToElement(bookSection);
+
+                const selectedBook = mockBookStructure.find(book => book.id === selectedBookId);
+                if (selectedBook) {
+                    chapterSection.style.display = 'block';
+                    const numberOfChapters = selectedBook.chapters;
+                    const chapters = Array.from({ length: numberOfChapters }, (_, i) => i + 1);
+                    populateSelect(chapterSelect, chapters, selectedChapter);
+
+                    if (selectedChapter && parseInt(selectedChapter) <= numberOfChapters) {
+                        readingTypeSection.style.display = 'block';
+                        const numberOfVerses = 30; // Assuming a max of 30 for simplicity
+                        const verses = Array.from({ length: numberOfVerses }, (_, i) => i + 1);
+                        populateSelect(verseSelect, verses, selectedVerseNum);
+                        populateSelect(startVerseSelect, verses, startVerse);
+                        populateSelect(endVerseSelect, verses, endVerse);
+
+                        if (readingType === 'single') {
+                            singleVerseSection.style.display = 'block';
+                            rangeVerseSection.style.display = 'none';
+                        } else if (readingType === 'range') {
+                            singleVerseSection.style.display = 'none';
+                            rangeVerseSection.style.display = 'flex';
+                        } else if (readingType === 'chapter') {
+                            singleVerseSection.style.display = 'none';
+                            rangeVerseSection.style.display = 'none';
+                        }
+
+                        if (readingType === 'chapter' ||
+                            (readingType === 'single' && selectedVerseNum && parseInt(selectedVerseNum) <= numberOfVerses) ||
+                            (readingType === 'range' && startVerse && endVerse && parseInt(startVerse) <= numberOfVerses && parseInt(endVerse) <= numberOfVerses && parseInt(startVerse) < parseInt(endVerse))) {
+                            fetchContentFromAI();
+                        } else {
+                            clearVerseDisplay();
+                        }
+
+                    } else {
+                        readingTypeSection.style.display = 'none';
+                        singleVerseSection.style.display = 'none';
+                        rangeVerseSection.style.display = 'none';
+                        populateSelect(chapterSelect, []);
+                        populateSelect(verseSelect, []);
+                        populateSelect(startVerseSelect, []);
+                        populateSelect(endVerseSelect, []);
+                        selectedChapter = '';
+                        clearVerseDisplay();
+                    }
+                } else {
+                    chapterSection.style.display = 'none';
+                    readingTypeSection.style.display = 'none';
+                    singleVerseSection.style.display = 'none';
+                    rangeVerseSection.style.display = 'none';
+                    populateSelect(chapterSelect, []);
+                    populateSelect(verseSelect, []);
+                    populateSelect(startVerseSelect, []);
+                    populateSelect(endVerseSelect, []);
+                    selectedBookId = '';
+                    selectedChapter = '';
+                    selectedVerseNum = '';
+                    startVerse = '';
+                    endVerse = '';
+                    clearVerseDisplay();
+                }
             } else {
                 bookSection.style.display = 'none';
                 chapterSection.style.display = 'none';
@@ -389,6 +582,12 @@
                 populateSelect(verseSelect, []);
                 populateSelect(startVerseSelect, []);
                 populateSelect(endVerseSelect, []);
+                selectedBookId = '';
+                selectedChapter = '';
+                selectedVerseNum = '';
+                startVerse = '';
+                endVerse = '';
+                clearVerseDisplay();
             }
             setLoadingState(loading);
         });
@@ -411,6 +610,7 @@
                 readingTypeSection.style.display = 'none';
                 singleVerseSection.style.display = 'none';
                 rangeVerseSection.style.display = 'none';
+                scrollToElement(chapterSection);
             } else {
                 chapterSection.style.display = 'none';
                 readingTypeSection.style.display = 'none';
@@ -434,7 +634,7 @@
 
             if (selectedChapter) {
                 readingTypeSection.style.display = 'block';
-                const numberOfVerses = 30;
+                const numberOfVerses = 30; // Assuming a max of 30 for simplicity
                 const verses = Array.from({ length: numberOfVerses }, (_, i) => i + 1);
                 populateSelect(verseSelect, verses, selectedVerseNum);
                 populateSelect(startVerseSelect, verses, startVerse);
@@ -444,6 +644,11 @@
                 rangeVerseSection.style.display = 'none';
                 document.querySelector('input[name="readingType"][value="single"]').checked = true;
                 readingType = 'single';
+                scrollToElement(readingTypeSection);
+
+                if (readingType === 'chapter') {
+                    fetchContentFromAI();
+                }
             } else {
                 readingTypeSection.style.display = 'none';
                 singleVerseSection.style.display = 'none';
@@ -467,12 +672,17 @@
                 if (readingType === 'single') {
                     singleVerseSection.style.display = 'block';
                     rangeVerseSection.style.display = 'none';
+                    scrollToElement(singleVerseSection);
                 } else if (readingType === 'range') {
                     singleVerseSection.style.display = 'none';
                     rangeVerseSection.style.display = 'flex';
+                    scrollToElement(rangeVerseSection);
                 } else if (readingType === 'chapter') {
                     singleVerseSection.style.display = 'none';
                     rangeVerseSection.style.display = 'none';
+                    if (selectedChapter) {
+                        fetchContentFromAI();
+                    }
                 }
             });
         });
@@ -481,21 +691,28 @@
             selectedVerseNum = event.target.value;
             clearVerseDisplay();
             hideError();
+            if (selectedVerseNum) {
+                fetchContentFromAI();
+            }
         });
 
         startVerseSelect.addEventListener('change', (event) => {
             startVerse = event.target.value;
             clearVerseDisplay();
             hideError();
+            if (startVerse && endVerse && parseInt(startVerse) < parseInt(endVerse)) {
+                fetchContentFromAI();
+            }
         });
 
         endVerseSelect.addEventListener('change', (event) => {
             endVerse = event.target.value;
             clearVerseDisplay();
             hideError();
+            if (startVerse && endVerse && parseInt(startVerse) < parseInt(endVerse)) {
+                fetchContentFromAI();
+            }
         });
-
-        fetchButton.addEventListener('click', fetchContentFromAI);
 
         // Inicializa a aplicação ao carregar a página
         window.onload = loadInitialData;
