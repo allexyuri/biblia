@@ -159,6 +159,15 @@
                 <p id="verse-text" class="text-gray-900 text-lg leading-relaxed whitespace-pre-wrap"></p>
             </div>
         </div>
+
+        <button
+            id="installButton"
+            class="mt-6 w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 transition-colors duration-200"
+            style="display: none;"
+        >
+            Instalar Aplicativo
+        </button>
+
     </div>
 
     <script type="module">
@@ -260,6 +269,7 @@
         const verseDisplayDiv = document.getElementById('verse-display');
         const verseTitleH2 = document.getElementById('verse-title');
         const verseTextP = document.getElementById('verse-text');
+        const installButton = document.getElementById('installButton'); // Referência ao novo botão
 
         // Seções que serão exibidas/ocultadas
         const bookSection = document.getElementById('book-section');
@@ -276,6 +286,7 @@
         let endVerse = '';
         let readingType = 'single'; // Padrão para versículo único
         let loading = false;
+        let deferredPrompt; // Variável para armazenar o evento beforeinstallprompt
 
         // Variables for Hebrew translation toggle
         let currentDisplayingHebrew = true;
@@ -525,24 +536,29 @@
                         populateSelect(startVerseSelect, verses, startVerse);
                         populateSelect(endVerseSelect, verses, endVerse);
 
-                        if (readingType === 'single') {
-                            singleVerseSection.style.display = 'block';
-                            rangeVerseSection.style.display = 'none';
-                        } else if (readingType === 'range') {
-                            singleVerseSection.style.display = 'none';
-                            rangeVerseSection.style.display = 'flex';
-                        } else if (readingType === 'chapter') {
-                            singleVerseSection.style.display = 'none';
-                            rangeVerseSection.style.display = 'none';
-                        }
-
-                        if (readingType === 'chapter' ||
-                            (readingType === 'single' && selectedVerseNum && parseInt(selectedVerseNum) <= numberOfVerses) ||
-                            (readingType === 'range' && startVerse && endVerse && parseInt(startVerse) <= numberOfVerses && parseInt(endVerse) <= numberOfVerses && parseInt(startVerse) < parseInt(endVerse))) {
-                            fetchContentFromAI();
+                        // Não force o readingType para 'single' aqui
+                        // Mantenha o estado do readingType e acione a busca se for 'chapter'
+                        if (readingType === 'chapter') { // Se o tipo de leitura atual for capítulo inteiro
+                            fetchContentFromAI(); // Carregue o capítulo automaticamente
                         } else {
-                            clearVerseDisplay();
+                            // Se for single ou range, exiba as seções de seleção de versículos
+                            if (readingType === 'single') {
+                                singleVerseSection.style.display = 'block';
+                                rangeVerseSection.style.display = 'none';
+                            } else if (readingType === 'range') {
+                                singleVerseSection.style.display = 'none';
+                                rangeVerseSection.style.display = 'flex';
+                            }
+                            // Se já houver um versículo ou intervalo selecionado válido para o novo capítulo, carregue
+                            if ( (readingType === 'single' && selectedVerseNum && parseInt(selectedVerseNum) <= numberOfVerses) ||
+                                 (readingType === 'range' && startVerse && endVerse && parseInt(startVerse) <= numberOfVerses && parseInt(endVerse) <= numberOfVerses && parseInt(startVerse) < parseInt(endVerse)) ) {
+                                fetchContentFromAI();
+                            } else {
+                                clearVerseDisplay();
+                            }
                         }
+                        scrollToElement(readingTypeSection);
+
 
                     } else {
                         readingTypeSection.style.display = 'none';
@@ -607,7 +623,10 @@
                 const numberOfChapters = selectedBook ? selectedBook.chapters : 0;
                 const chapters = Array.from({ length: numberOfChapters }, (_, i) => i + 1);
                 populateSelect(chapterSelect, chapters, selectedChapter);
-                readingTypeSection.style.display = 'none';
+                // Ao mudar o livro, reinicia o tipo de leitura para 'single' por padrão
+                document.querySelector('input[name="readingType"][value="single"]').checked = true;
+                readingType = 'single';
+                readingTypeSection.style.display = 'none'; // Esconde até selecionar um capítulo
                 singleVerseSection.style.display = 'none';
                 rangeVerseSection.style.display = 'none';
                 scrollToElement(chapterSection);
@@ -640,15 +659,21 @@
                 populateSelect(startVerseSelect, verses, startVerse);
                 populateSelect(endVerseSelect, verses, endVerse);
 
-                singleVerseSection.style.display = 'block';
-                rangeVerseSection.style.display = 'none';
-                document.querySelector('input[name="readingType"][value="single"]').checked = true;
-                readingType = 'single';
+                // IMPORTANTE: Mantenha o estado atual do 'readingType'
+                // Se o tipo de leitura atual for 'chapter', então carregue o conteúdo
+                if (readingType === 'chapter') {
+                    singleVerseSection.style.display = 'none';
+                    rangeVerseSection.style.display = 'none';
+                    fetchContentFromAI();
+                } else if (readingType === 'single') {
+                    singleVerseSection.style.display = 'block';
+                    rangeVerseSection.style.display = 'none';
+                } else if (readingType === 'range') {
+                    singleVerseSection.style.display = 'none';
+                    rangeVerseSection.style.display = 'flex';
+                }
                 scrollToElement(readingTypeSection);
 
-                if (readingType === 'chapter') {
-                    fetchContentFromAI();
-                }
             } else {
                 readingTypeSection.style.display = 'none';
                 singleVerseSection.style.display = 'none';
@@ -680,7 +705,7 @@
                 } else if (readingType === 'chapter') {
                     singleVerseSection.style.display = 'none';
                     rangeVerseSection.style.display = 'none';
-                    if (selectedChapter) {
+                    if (selectedChapter) { // Se já tiver um capítulo selecionado
                         fetchContentFromAI();
                     }
                 }
@@ -726,6 +751,47 @@
                     });
             });
         }
+
+        // PWA INSTALLATION PROMPT LOGIC
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Previne que o mini-infobar apareça automaticamente
+            e.preventDefault();
+            // Armazena o evento para que possa ser acionado depois
+            deferredPrompt = e;
+            // Mostra nosso botão de instalação personalizado
+            installButton.style.display = 'block';
+            console.log('Evento beforeinstallprompt disparado. Botão de instalação visível.');
+        });
+
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Esconde o botão após o clique
+                installButton.style.display = 'none';
+                // Mostra o prompt de instalação
+                deferredPrompt.prompt();
+                // Espera a resposta do usuário ao prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // Reseta deferredPrompt, já que ele só pode ser usado uma vez
+                deferredPrompt = null;
+
+                // Se o usuário instalou, podemos esconder o botão permanentemente
+                if (outcome === 'accepted') {
+                    console.log('PWA instalado com sucesso!');
+                } else {
+                    console.log('Instalação do PWA cancelada.');
+                    // Se o usuário cancelou, você pode decidir se quer mostrar o botão novamente em algum momento
+                    // ou mantê-lo escondido.
+                }
+            }
+        });
+
+        // Opcional: Esconda o botão se o PWA já estiver instalado
+        window.addEventListener('appinstalled', () => {
+            installButton.style.display = 'none';
+            console.log('PWA já instalado.');
+        });
+
 
         // Inicializa a aplicação ao carregar a página
         window.onload = loadInitialData;
